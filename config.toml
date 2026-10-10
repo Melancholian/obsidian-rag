@@ -1,0 +1,17 @@
+[obsidian]
+obsidian_path = "<your-obsidian-vault-directory>"
+
+[chunker]
+chunk_size=1200
+chunk_overlap=150
+
+[loader]
+batch_size=100
+
+[lance]
+hf_embeddings='cointegrated/rubert-tiny2'
+lance_uri="data/lancedb"
+lance_table="obsidian"
+
+[graph]
+graphml_path = "gr.gml"

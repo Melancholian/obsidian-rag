@@ -7,7 +7,17 @@ authors = [
     { name = "Melancholian", email = "kasaneru.san@gmail.com" }
 ]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "lancedb>=0.39.0",
+    "langchain>=1.4.1",
+    "langchain-community>=0.4.2",
+    "langchain-huggingface>=1.2.2",
+    "langchain-lancedb>=0.1.0",
+    "langchain-text-splitters>=1.1.2",
+    "networkx>=3.6.1",
+    "sentence-transformers>=6.0.1",
+    "tqdm>=4.70.1",
+]
 
 [project.scripts]
 obsidian-rag = "obsidian_rag:main"
