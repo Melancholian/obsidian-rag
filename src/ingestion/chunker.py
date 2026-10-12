@@ -49,7 +49,7 @@ class Chunker:
 
             # Убираем вложения
             if not target.endswith(self.excluded_filetypes):
-                extracted_links.add(target)
+                extracted_links.add(target + '.md')
 
             return alias.strip() if alias else target
 
