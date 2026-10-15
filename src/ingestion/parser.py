@@ -59,7 +59,7 @@ class Parser:
                     page_content=text,
                     metadata={
                         'source': self.get_relative_path(path),
-                        'title': path.stem,
+                        'title': path.stem, # TODO: remove, add unique chunk titles for graph
                         # 'links': links,
                         **frontmatter_metadata
                     },
