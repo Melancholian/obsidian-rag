@@ -6,12 +6,11 @@ chunk_size=1200
 chunk_overlap=150
 
 [loader]
-batch_size=100
+batch_size=30
 
 [lance]
-hf_embeddings='cointegrated/rubert-tiny2'
 lance_uri="data/lancedb"
 lance_table="obsidian"
 
 [graph]
-graphml_path = "gr.gml"
+graphml_path = "data/gr.gml"

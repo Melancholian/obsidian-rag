@@ -25,7 +25,6 @@ class Loader:
         parser = Parser(cfg.obsidian_path)
         chunker = Chunker()
         vectorstore = LanceDBStore(
-            embeddings = cfg.hf_embeddings,
             uri=cfg.lance_uri, 
             table_name=cfg.lance_table
         )
