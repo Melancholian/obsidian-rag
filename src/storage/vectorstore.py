@@ -113,26 +113,50 @@ class LanceDBStore:
         c: int = 60,
         candidates: int = 50,
     ) -> list[Document]:
+        '''
+        Run hybrid search using BGE-m3 and fuse the results with RRF.
+
+        The dense and sparse ranked lists are combined with weighted reciprocal
+        rank fusion, and documents appearing in both lists are returned once.
+
+        Args:
+            query: Query to search for.
+            k: Number of fused documents to return.
+            dense_weight: RRF weight for the dense result list.
+            sparse_weight: RRF weight for the sparse result list.
+            c: RRF smoothing constant. Larger values flatten the advantage of
+                top ranks.
+            candidates: Number of candidates retrieved from each leg before
+                fusion. Should be at least ``k``.
+
+        Returns:
+            Up to ``k`` documents ordered by descending fused RRF score.
+
+        Raises:
+            ValueError: If ``candidates`` is smaller than ``k``.
+        '''
+        if candidates < k:
+            raise ValueError('``candidates`` should be at least ``k``')
+
         q = self._encode([query])
         q_dense = q['dense_vecs'][0]
         q_sparse = q['lexical_weights'][0]
 
         table = self._open_table()
-        dense_rows = table.search(q).limit(k).to_list()
+        dense_rows = table.search(q_dense).limit(candidates).to_list()
 
         scored = [
             (
                 self.model.compute_lexical_matching_score(
-                    q, json.loads(row['sparse'])
+                    q_sparse, json.loads(row['sparse'])
                 ),
                 row,
             )
             for row in table.to_arrow().to_pylist()
         ]
         scored.sort(key=lambda x: x[0], reverse=True)
-        sparse_rows = [row for score, row in scored[:k] if score > 0]
+        sparse_rows = [row for score, row in scored[:candidates] if score > 0]
 
-        # reciprocal rank fusion
         # by_id ensures a doc appearing in both lists is returned once
         rrf = {}
         by_id = {}
