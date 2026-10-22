@@ -1,6 +1,7 @@
 import lancedb
 import torch
 import numpy as np
+import pyarrow as pa
 import json
 import hashlib
 from FlagEmbedding import BGEM3FlagModel
@@ -38,10 +39,20 @@ class LanceDBStore:
         return {
             'id': doc_id,
             'dense': np.asarray(dense, dtype=np.float32).tolist(),
-            'sparse': json.dumps(sparse),
+            'sparse': json.dumps({str(k): float(v) for k, v in sparse.items()}),
             'text': doc.page_content,
             'metadata': json.dumps(doc.metadata, ensure_ascii=False),
         }
+
+    @staticmethod
+    def _schema(dim: int) -> pa.Schema:
+        return pa.schema([
+            pa.field('id', pa.string()),
+            pa.field('dense', pa.list_(pa.float32(), dim)),
+            pa.field('sparse', pa.string()),
+            pa.field('text', pa.string()),
+            pa.field('metadata', pa.string()),
+        ])
 
     def _encode(self, texts: list[str]) -> dict:
         return self.model.encode(
@@ -70,10 +81,13 @@ class LanceDBStore:
             )
         ]
         db = self._connect()
-        if db.list_tables().tables:
+        if self.table_name in db.list_tables().tables:
             db.open_table(self.table_name).add(rows)
         else:
-            db.create_table(self.table_name, data=rows)
+            table = pa.Table.from_pylist(
+                rows, schema=self._schema(len(rows[0]['dense']))
+            )
+            db.create_table(self.table_name, data=table)
 
     def _rows_to_documents(self, rows: list[dict]) -> list[Document]:
         return [
